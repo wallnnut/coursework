@@ -1,16 +1,21 @@
+/*eslint-disable*/
 import React from "react";
 import PropTypes from "prop-types";
-const Quality = ({ color, name, _id }) => {
-    return (
-        <span className={"badge m-1 bg-" + color}>
-            {name}
-        </span>
-    );
+import { useQuality } from "../../../hooks/useQualitites";
+const Quality = ({ id }) => {
+    const { getQuality, isLoading } = useQuality();
+    const quality = getQuality(id);
+    if (!isLoading) {
+        return (
+            <span className={"badge m-1 bg-" + quality.color}>
+                {quality.name}
+            </span>
+        );
+    }
+    return "Loading...";
 };
 Quality.propTypes = {
-    color: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    _id: PropTypes.string.isRequired
+    qualitites: PropTypes.array
 };
 
 export default Quality;
