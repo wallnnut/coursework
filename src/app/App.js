@@ -22,9 +22,14 @@ function App() {
                             <ProtectedRoute
                                 path="/users/:userId?/:pageId?"
                                 component={Users}
+                                exact
                             />
-                            <Route path="/logout" component={LogOut} />
-                            <Route path="/login/:type?" component={Login} />
+                            <Route path="/logout" component={LogOut} exact />
+                            <Route
+                                path="/login/:type?"
+                                component={Login}
+                                exact
+                            />
                             <Route path="/" exact component={Main} />
                             <Redirect to="/" />
                         </Switch>

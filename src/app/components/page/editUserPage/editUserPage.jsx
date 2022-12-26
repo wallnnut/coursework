@@ -9,10 +9,10 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useQuality } from "../../../hooks/useQualitites";
 import { useProfession } from "../../../hooks/useProfession";
 import { useUser } from "../../../hooks/useUser";
-import { useHistory, useParams } from "react-router-dom";
+import { Redirect, useParams } from "react-router-dom";
 
 const EditUserPage = () => {
-    const { userId } = useParams();
+    const { userId, pageId } = useParams();
     const [errors, setErrors] = useState({});
     const { currentUser, editUser } = useAuth();
     const { getUserById } = useUser();
@@ -105,66 +105,72 @@ const EditUserPage = () => {
         }
     };
     return (
-        currentUser &&
-        professions &&
-        qualities && (
-            <div className="container mt-5">
-                <div className="row">
-                    <div className="col-md-6 offset-md-3 shadow p-4">
-                        <form onSubmit={handleSubmit}>
-                            <TextField
-                                label="Фамилия имя"
-                                name="name"
-                                value={data.name}
-                                onChange={handleChange}
-                                error={errors.name}
-                            />
-                            <TextField
-                                label="Почта"
-                                type="text"
-                                name="email"
-                                value={data.email}
-                                onChange={handleChange}
-                                error={errors.email}
-                            />
-                            <SelectField
-                                label="Выбери свою профессию"
-                                options={profArray}
-                                name="profession"
-                                onChange={handleChange}
-                                value={data.profession}
-                                error={errors.profession}
-                            />
-                            <RadioField
-                                options={[
-                                    { name: "Male", value: "male" },
-                                    { name: "Female", value: "female" },
-                                    { name: "Other", value: "other" }
-                                ]}
-                                value={data.sex}
-                                name="sex"
-                                onChange={handleChange}
-                                label="Выберите ваш пол"
-                            />
-                            <MultiSelectField
-                                options={qualArray}
-                                onChange={handleChange}
-                                defaultValue={defaultValue}
-                                name="qualities"
-                                label="Выберите ваши качества"
-                            />
-                            <button
-                                className="btn btn-primary w-100 mx-auto"
-                                type="submit"
-                                disabled={!isValid}
-                            >
-                                Submit
-                            </button>
-                        </form>
+        <>
+            {currentUser._id === userId ? (
+                user &&
+                professions &&
+                qualities && (
+                    <div className="container mt-5">
+                        <div className="row">
+                            <div className="col-md-6 offset-md-3 shadow p-4">
+                                <form onSubmit={handleSubmit}>
+                                    <TextField
+                                        label="Фамилия имя"
+                                        name="name"
+                                        value={data.name}
+                                        onChange={handleChange}
+                                        error={errors.name}
+                                    />
+                                    <TextField
+                                        label="Почта"
+                                        type="text"
+                                        name="email"
+                                        value={data.email}
+                                        onChange={handleChange}
+                                        error={errors.email}
+                                    />
+                                    <SelectField
+                                        label="Выбери свою профессию"
+                                        options={profArray}
+                                        name="profession"
+                                        onChange={handleChange}
+                                        value={data.profession}
+                                        error={errors.profession}
+                                    />
+                                    <RadioField
+                                        options={[
+                                            { name: "Male", value: "male" },
+                                            { name: "Female", value: "female" },
+                                            { name: "Other", value: "other" }
+                                        ]}
+                                        value={data.sex}
+                                        name="sex"
+                                        onChange={handleChange}
+                                        label="Выберите ваш пол"
+                                    />
+                                    <MultiSelectField
+                                        options={qualArray}
+                                        onChange={handleChange}
+                                        defaultValue={defaultValue}
+                                        name="qualities"
+                                        label="Выберите ваши качества"
+                                    />
+                                    <button
+                                        className="btn btn-primary w-100 mx-auto"
+                                        type="submit"
+                                        disabled={!isValid}
+                                    >
+                                        Submit
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        )
+                )
+            ) : (
+                <Redirect to={"/users/" + currentUser._id + "/edit"} />
+            )}
+        </>
     );
 };
 

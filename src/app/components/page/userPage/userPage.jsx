@@ -4,12 +4,15 @@ import UserCard from "../../ui/userCard";
 import QualitiesCard from "../../ui/qualitiesCard";
 import MeetingsCard from "../../ui/meetingsCard";
 import Comments from "../../ui/comments";
-// import { useUser } from "../../../hooks/useUser";
+import { useUser } from "../../../hooks/useUser";
 import { CommentProvider } from "../../../hooks/useComments";
-import { useAuth } from "../../../hooks/useAuth";
-const UserPage = () => {
-    const { currentUser } = useAuth();
-    const user = currentUser;
+import { useParams } from "react-router-dom";
+const UserPage = ({ userId }) => {
+    const params = useParams();
+    console.log(params);
+
+    const { getUserById } = useUser();
+    const user = getUserById(userId);
     if (user) {
         return (
             <div className="container">
