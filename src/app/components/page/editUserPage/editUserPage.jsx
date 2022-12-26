@@ -1,56 +1,67 @@
 /*eslint-disable */
 import React, { useState, useEffect } from "react";
-import { useHistory, useParams } from "react-router-dom";
 import { validator } from "../../../utils/validator";
 import TextField from "../../common/form/textField";
-import API from "../../../api";
 import SelectField from "../../common/form/selectField";
 import RadioField from "../../common/form/radioField";
 import MultiSelectField from "../../common/form/multiSelectField";
+import { useAuth } from "../../../hooks/useAuth";
+import { useQuality } from "../../../hooks/useQualitites";
+import { useProfession } from "../../../hooks/useProfession";
+import { useUser } from "../../../hooks/useUser";
+import { useHistory, useParams } from "react-router-dom";
 
 const EditUserPage = () => {
     const { userId } = useParams();
-    const history = useHistory();
-    const [data, setData] = useState({
-        name: "",
-        email: "",
-        profession: "",
-        sex: "",
-        qualities: []
+    const [errors, setErrors] = useState({});
+    const { currentUser, editUser } = useAuth();
+    const { getUserById } = useUser();
+    const user = getUserById(userId);
+    const { email, name, profession, qualities: userQualities, sex } = user;
+    const { professions } = useProfession();
+    const { qualities } = useQuality();
+    const qualArray = qualities.map((qual) => {
+        return {
+            label: qual.name,
+            value: qual._id,
+            color: qual.color
+        };
+    });
+    const profArray = professions.map((prof) => {
+        return {
+            label: prof.name,
+            value: prof._id
+        };
     });
 
-    const [errors, setErrors] = useState({});
-    const [qualities, setQualities] = useState([]);
-    const [professions, setProfession] = useState([]);
-    console.log(professions);
-    const transformData = (data) => {
-        return data.map((qual) => ({ label: qual.name, value: qual._id }));
+    const getQualities = (elements) => {
+        const qualitiesArray = [];
+        for (const elem of elements) {
+            for (const quality in qualities) {
+                if (elem.value === qualArray[quality].value) {
+                    qualitiesArray.push(qualArray[quality].value);
+                }
+            }
+        }
+        return qualitiesArray;
     };
-    useEffect(() => {
-        API.professions.fetchAll().then((data) => {
-            const professionsList = Object.keys(data).map((professionName) => ({
-                label: data[professionName].name,
-                value: data[professionName]._id
-            }));
-            setProfession(professionsList);
-        });
-        API.qualities.fetchAll().then((data) => {
-            const qualitiesList = Object.keys(data).map((optionName) => ({
-                value: data[optionName]._id,
-                label: data[optionName].name,
-                color: data[optionName].color
-            }));
-            setQualities(qualitiesList);
-        });
-        API.users.getById(userId).then(({ profession, qualities, ...data }) =>
-            setData((prev) => ({
-                ...prev,
-                ...data,
-                qualities: transformData(qualities),
-                profession: profession._id
-            }))
-        );
-    }, []);
+
+    const defaultValue =
+        qualities && qualArray.filter((q) => userQualities.includes(q.value));
+
+    const [data, setData] = useState({
+        name: name,
+        email: email,
+        profession: profession,
+        sex: sex,
+        qualities: userQualities
+    });
+    const handleChange = (target) => {
+        setData((prevState) => ({
+            ...prevState,
+            [target.name]: target.value
+        }));
+    };
 
     const validatorConfig = {
         name: {
@@ -77,55 +88,26 @@ const EditUserPage = () => {
     useEffect(() => {
         validate();
     }, [data]);
-    const handleChange = (target) => {
-        setData((prevState) => ({
-            ...prevState,
-            [target.name]: target.value
-        }));
-    };
-    const getQualities = (elements) => {
-        const qualitiesArray = [];
-        for (const elem of elements) {
-            for (const quality in qualities) {
-                if (elem.value === qualities[quality].value) {
-                    qualitiesArray.push({
-                        _id: qualities[quality].value,
-                        name: qualities[quality].label,
-                        color: qualities[quality].color
-                    });
-                }
-            }
-        }
-        return qualitiesArray;
-    };
-    const getProfessionById = (id) => {
-        for (const prof of professions) {
-            if (prof.value === id) {
-                return { _id: prof.value, name: prof.label };
-            }
-        }
-    };
-    const handleSubmit = (e) => {
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const isValid = validate();
         if (!isValid) return;
-        const { profession, qualities } = data;
-        API.users
-            .update(userId, {
-                ...data,
-                profession: getProfessionById(profession),
-                qualities: getQualities(qualities)
-            })
-            .then((data) => history.push(`/users/${data._id}`));
-        console.log({
+        const { qualities } = data;
+        const newData = {
             ...data,
-            profession: getProfessionById(profession),
             qualities: getQualities(qualities)
-        });
+        };
+        try {
+            editUser(newData);
+        } catch (error) {
+            setErrors(error);
+        }
     };
     return (
-        Object.keys(professions).length > 0 &&
-        data._id && (
+        currentUser &&
+        professions &&
+        qualities && (
             <div className="container mt-5">
                 <div className="row">
                     <div className="col-md-6 offset-md-3 shadow p-4">
@@ -147,7 +129,7 @@ const EditUserPage = () => {
                             />
                             <SelectField
                                 label="Выбери свою профессию"
-                                options={professions}
+                                options={profArray}
                                 name="profession"
                                 onChange={handleChange}
                                 value={data.profession}
@@ -165,9 +147,9 @@ const EditUserPage = () => {
                                 label="Выберите ваш пол"
                             />
                             <MultiSelectField
-                                options={qualities}
+                                options={qualArray}
                                 onChange={handleChange}
-                                defaultValue={data.qualities}
+                                defaultValue={defaultValue}
                                 name="qualities"
                                 label="Выберите ваши качества"
                             />

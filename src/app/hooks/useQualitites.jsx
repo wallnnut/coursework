@@ -36,6 +36,7 @@ export const QualityProvider = ({ children }) => {
     function getQuality(id) {
         return qualities.find((qual) => qual._id === id);
     }
+
     function errorCatcher(error) {
         const { message } = error.response.data;
         setError(message);

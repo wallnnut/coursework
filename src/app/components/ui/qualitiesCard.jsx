@@ -1,5 +1,5 @@
 import React from "react";
-import Qualities from "./qualities";
+import QualitiesList from "./qualities";
 import Proptypes from "prop-types";
 const QualitiesCard = ({ data }) => {
     return (
@@ -9,7 +9,7 @@ const QualitiesCard = ({ data }) => {
                     <span>Qualities</span>
                 </h5>
                 <p className="card-text">
-                    <Qualities qualities={data} />
+                    <QualitiesList qualities={data} />
                 </p>
             </div>
         </div>

@@ -3,7 +3,10 @@ import { toast } from "react-toastify";
 import PropTypes from "prop-types";
 import axios from "axios";
 import userService from "../services/user.service";
-import { setToken } from "../services/localStorage.service";
+import localStorageService, {
+    setToken
+} from "../services/localStorage.service";
+import { useHistory } from "react-router-dom";
 
 const httpAuth = axios.create();
 
@@ -16,6 +19,18 @@ export const useAuth = () => {
 const AuthProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const [currentUser, setCurrentUser] = useState();
+    const [isLoading, setLoading] = useState(true);
+    const history = useHistory();
+
+    function randomInt(max, min) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
+    function logOut() {
+        localStorageService.removeToken();
+        setCurrentUser(null);
+        history.push("/");
+    }
 
     async function signUp({ email, password, ...rest }) {
         const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_KEY}`;
@@ -26,14 +41,24 @@ const AuthProvider = ({ children }) => {
                 returnSecureToken: true
             });
             setToken(data);
-            await createUser({ _id: data.localId, email, ...rest });
-            console.log(data);
+            await createUser({
+                _id: data.localId,
+                email,
+                rate: randomInt(1, 5),
+                completedMeetings: randomInt(0, 400),
+                image: `https://avatars.dicebear.com/api/avataaars/${(
+                    Math.random() + 1
+                )
+                    .toString(36)
+                    .substring(7)}.svg`,
+                ...rest
+            });
         } catch (error) {
             const { code, message } = error.response.data.error;
             if (code === 400) {
                 if (message === "EMAIL_EXISTS") {
                     const errorObject = {
-                        email: "Пользователь с таким Email уже существует"
+                        email: "Пользователь c таким Email уже существует"
                     };
                     throw errorObject;
                 }
@@ -44,7 +69,7 @@ const AuthProvider = ({ children }) => {
 
     async function createUser(data) {
         try {
-            const { content } = userService.create(data);
+            const { content } = await userService.create(data);
             setCurrentUser(content);
         } catch (error) {
             errorCatcher(error);
@@ -55,6 +80,25 @@ const AuthProvider = ({ children }) => {
         const { message } = error.response.data;
         setError(message);
     }
+
+    async function getUserData() {
+        try {
+            const { content } = await userService.getCurrentUser();
+            setCurrentUser(content);
+        } catch (error) {
+            errorCatcher(error);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    useEffect(() => {
+        if (localStorageService.getAccessToken()) {
+            getUserData();
+        } else {
+            setLoading(false);
+        }
+    }, []);
     useEffect(() => {
         if (error !== null) {
             toast.error(error);
@@ -71,9 +115,9 @@ const AuthProvider = ({ children }) => {
                 returnSecureToken: true
             });
             setToken(data);
+            await getUserData();
         } catch (error) {
             const { code, message } = error.response.data.error;
-            console.log(message);
             if (code === 400) {
                 if (message === "EMAIL_NOT_FOUND") {
                     const errorObject = {
@@ -91,10 +135,25 @@ const AuthProvider = ({ children }) => {
             errorCatcher(error);
         }
     }
+    async function editUser(data) {
+        console.log(data);
+
+        try {
+            const { content } = await userService.editUser(data);
+            setCurrentUser((prevState) => ({ ...prevState, ...data }));
+            return content;
+        } catch (error) {
+            errorCatcher(error);
+        } finally {
+            history.goBack();
+        }
+    }
 
     return (
-        <AuthContext.Provider value={{ signUp, currentUser, signIn }}>
-            {children}
+        <AuthContext.Provider
+            value={{ signUp, currentUser, signIn, logOut, editUser }}
+        >
+            {!isLoading ? children : "Loading"}
         </AuthContext.Provider>
     );
 };
