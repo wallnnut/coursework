@@ -1,5 +1,4 @@
 /*eslint-disable */
-
 import httpService from "./http.service";
 import localStorageService from "./localStorage.service";
 
@@ -18,14 +17,18 @@ const userService = {
         return data;
     },
     getCurrentUser: async () => {
-        const {data} = await httpService.get(userEndPoint+localStorageService.getUserId())
-return data
+        const { data } = await httpService.get(
+            userEndPoint + localStorageService.getUserId()
+        );
+        return data;
     },
-    editUser: async(payload) => {
-        const {data} = await httpService.patch(userEndPoint+localStorageService.getUserId(), payload)
-        return data
+    editUser: async (payload) => {
+        const { data } = await httpService.patch(
+            userEndPoint + localStorageService.getUserId(),
+            payload
+        );
+        return data;
     }
-
 };
 
 export default userService;

@@ -36,7 +36,6 @@ http.interceptors.request.use(
                 config.params = { ...config.params, auth: acessToken };
             }
         }
-
         return config;
     },
     function (error) {

@@ -6,20 +6,24 @@ import SelectField from "../../common/form/selectField";
 import RadioField from "../../common/form/radioField";
 import MultiSelectField from "../../common/form/multiSelectField";
 import { useAuth } from "../../../hooks/useAuth";
-import { useQuality } from "../../../hooks/useQualitites";
-import { useProfession } from "../../../hooks/useProfession";
-import { useUser } from "../../../hooks/useUser";
 import { Redirect, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import {
+    getQualities,
+    getQualitiesLoadingStatus
+} from "../../../store/qualities";
+import { getProfessions } from "../../../store/professions";
 
 const EditUserPage = () => {
-    const { userId, pageId } = useParams();
+    const { userId } = useParams();
     const [errors, setErrors] = useState({});
     const { currentUser, editUser } = useAuth();
-    const { getUserById } = useUser();
-    const user = getUserById(userId);
+    const user = currentUser;
     const { email, name, profession, qualities: userQualities, sex } = user;
-    const { professions } = useProfession();
-    const { qualities } = useQuality();
+    const professions = useSelector(getProfessions())
+    const qualities = useSelector(getQualities());
+    const loadingStatus = useSelector(getQualitiesLoadingStatus());
+
     const qualArray = qualities.map((qual) => {
         return {
             label: qual.name,
@@ -33,29 +37,34 @@ const EditUserPage = () => {
             value: prof._id
         };
     });
-
-    const getQualities = (elements) => {
-        const qualitiesArray = [];
-        for (const elem of elements) {
-            for (const quality in qualities) {
-                if (elem.value === qualArray[quality].value) {
-                    qualitiesArray.push(qualArray[quality].value);
-                }
-            }
-        }
-        return qualitiesArray;
-    };
-
     const defaultValue =
         qualities && qualArray.filter((q) => userQualities.includes(q.value));
+    console.log(defaultValue);
 
     const [data, setData] = useState({
         name: name,
         email: email,
         profession: profession,
         sex: sex,
-        qualities: userQualities
+        qualities: defaultValue
     });
+
+    const getAllQualities = (elements) => {
+        const qualitiesArray = [];
+
+        if (elements.length !== 0) {
+            for (const elem of elements) {
+                for (const quality in qualities) {
+                    if (elem.value === qualArray[quality].value) {
+                        qualitiesArray.push(qualArray[quality].value);
+                    }
+                }
+            }
+        }
+
+        return qualitiesArray;
+    };
+
     const handleChange = (target) => {
         setData((prevState) => ({
             ...prevState,
@@ -96,8 +105,10 @@ const EditUserPage = () => {
         const { qualities } = data;
         const newData = {
             ...data,
-            qualities: getQualities(qualities)
+            qualities: getAllQualities(qualities)
         };
+        console.log(newData);
+
         try {
             editUser(newData);
         } catch (error) {

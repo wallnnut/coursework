@@ -4,13 +4,11 @@ import UserCard from "../../ui/userCard";
 import QualitiesCard from "../../ui/qualitiesCard";
 import MeetingsCard from "../../ui/meetingsCard";
 import Comments from "../../ui/comments";
-import { useUser } from "../../../hooks/useUser";
 import { CommentProvider } from "../../../hooks/useComments";
+import { useUser } from "../../../hooks/useUser";
 import { useParams } from "react-router-dom";
-const UserPage = ({ userId }) => {
-    const params = useParams();
-    console.log(params);
-
+const UserPage = () => {
+    const { userId } = useParams();
     const { getUserById } = useUser();
     const user = getUserById(userId);
     if (user) {

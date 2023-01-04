@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Route, Switch, Redirect } from "react-router-dom";
 import Users from "./layouts/users";
 import Login from "./layouts/login";
@@ -10,8 +10,16 @@ import { QualityProvider } from "./hooks/useQualitites";
 import AuthProvider from "./hooks/useAuth";
 import ProtectedRoute from "./components/common/protectedRoute";
 import LogOut from "./layouts/logOut";
+import { useDispatch } from "react-redux";
+import { loadQualitiesList } from "./store/qualities";
+import { loadProfessions } from "./store/professions";
 
 function App() {
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(loadQualitiesList());
+        dispatch(loadProfessions());
+    }, []);
     return (
         <div>
             <AuthProvider>

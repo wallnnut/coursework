@@ -1,11 +1,14 @@
 /*eslint-disable*/
 import React from "react";
 import PropTypes from "prop-types";
-import { useQuality } from "../../../hooks/useQualitites";
+import { useSelector } from "react-redux";
+import {
+    getQualitiesLoadingStatus,
+    getQuality
+} from "../../../store/qualities";
 const Quality = ({ id }) => {
-    const { getQuality, isLoading } = useQuality();
-    const quality = getQuality(id);
-    console.log(quality);
+    const quality = useSelector(getQuality(id));
+    const isLoading = useSelector(getQualitiesLoadingStatus());
     if (!isLoading) {
         return (
             <span className={"badge m-1 bg-" + quality.color}>

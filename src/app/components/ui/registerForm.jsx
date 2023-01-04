@@ -5,10 +5,11 @@ import SelectField from "../common/form/selectField";
 import RadioField from "../common/form/radioField";
 import MultiSelectField from "../common/form/multiSelectField";
 import CheckBoxField from "../common/form/checkBoxField";
-import { useQuality } from "../../hooks/useQualitites";
-import { useProfession } from "../../hooks/useProfession";
 import { useAuth } from "../../hooks/useAuth";
 import { useHistory } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { getQualities } from "../../store/qualities";
+import { getProfessions } from "../../store/professions";
 
 const RegisterForm = () => {
     const history = useHistory();
@@ -22,13 +23,13 @@ const RegisterForm = () => {
         licence: false
     });
     const { signUp } = useAuth();
-    const { qualities } = useQuality();
+    const qualities = useSelector(getQualities());
     const qualitiesList = qualities.map((qual) => ({
         label: qual.name,
         value: qual._id,
         color: qual.color
     }));
-    const { professions } = useProfession();
+    const professions = useSelector(getProfessions());
     const professionsList = professions.map((prof) => ({
         label: prof.name,
         value: prof._id
@@ -43,7 +44,7 @@ const RegisterForm = () => {
             }
         }
     };
-    const getQualities = (elements) => {
+    const getAllQualites = (elements) => {
         const qualitiesArray = [];
         for (const elem of elements) {
             for (const quality in qualities) {
@@ -124,7 +125,7 @@ const RegisterForm = () => {
         const newData = {
             ...data,
             profession: getProfessionById(profession),
-            qualities: getQualities(qualities)
+            qualities: getAllQualites(qualities)
         };
         try {
             await signUp(newData);
