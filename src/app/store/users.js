@@ -2,6 +2,7 @@ import { createAction, createSlice } from "@reduxjs/toolkit";
 import authService from "../services/auth.service";
 import localStorageService from "../services/localStorage.service";
 import userService from "../services/user.service";
+import { authErrorGenerator } from "../utils/authErrorGenerator";
 import { history } from "../utils/history";
 import { randomInt } from "../utils/randomInt";
 
@@ -69,10 +70,12 @@ const usersSlice = createSlice({
         },
         editRequestFailed: (state, action) => {
             state.error = action.payload;
+        },
+        authRequested: (state) => {
+            state.error = null;
         }
     }
 });
-const authRequested = createAction("users/authRequested");
 const userCreateRequested = createAction("users/userCreateRequested ");
 const createUserFailed = createAction("users/createUserFailed");
 const editRequested = createAction("users/editRequested");
@@ -86,7 +89,8 @@ const {
     userCreated,
     userLoggedOut,
     userEdited,
-    editRequestFailed
+    editRequestFailed,
+    authRequested
 } = actions;
 export const signUp =
     ({ email, password, ...rest }) =>
@@ -124,7 +128,13 @@ export const signIn =
             localStorageService.setToken(data);
             history.push(redirect);
         } catch (error) {
-            dispatch(authRequestFailed(error.message));
+            const { code, message } = error.response.data.error;
+            if (code === 400) {
+                const errorMessage = authErrorGenerator(message);
+                dispatch(authRequestFailed(errorMessage));
+            } else {
+                dispatch(authRequestFailed(error.message));
+            }
         }
     };
 
@@ -181,5 +191,6 @@ export const getCurrentUserData = () => (state) => {
           )
         : null;
 };
+export const getLoginErrors = () => (state) => state.users.error;
 
 export default usersReducer;
