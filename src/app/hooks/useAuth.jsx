@@ -136,8 +136,6 @@ const AuthProvider = ({ children }) => {
         }
     }
     async function editUser(data) {
-        console.log(data);
-
         try {
             const { content } = await userService.editUser(data);
             setCurrentUser((prevState) => ({ ...prevState, ...data }));

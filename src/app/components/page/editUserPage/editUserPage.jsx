@@ -5,24 +5,26 @@ import TextField from "../../common/form/textField";
 import SelectField from "../../common/form/selectField";
 import RadioField from "../../common/form/radioField";
 import MultiSelectField from "../../common/form/multiSelectField";
-import { useAuth } from "../../../hooks/useAuth";
 import { Redirect, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import {
-    getQualities,
-    getQualitiesLoadingStatus
-} from "../../../store/qualities";
+import { useDispatch, useSelector } from "react-redux";
+import { getQualities } from "../../../store/qualities";
 import { getProfessions } from "../../../store/professions";
+import { editUser, getCurrentUserData } from "../../../store/users";
 
 const EditUserPage = () => {
     const { userId } = useParams();
     const [errors, setErrors] = useState({});
-    const { currentUser, editUser } = useAuth();
-    const user = currentUser;
-    const { email, name, profession, qualities: userQualities, sex } = user;
-    const professions = useSelector(getProfessions())
+    const currentUser = useSelector(getCurrentUserData());
+    const {
+        email,
+        name,
+        profession,
+        qualities: userQualities,
+        sex
+    } = currentUser;
+    const professions = useSelector(getProfessions());
     const qualities = useSelector(getQualities());
-    const loadingStatus = useSelector(getQualitiesLoadingStatus());
+    const dispatch = useDispatch();
 
     const qualArray = qualities.map((qual) => {
         return {
@@ -39,7 +41,6 @@ const EditUserPage = () => {
     });
     const defaultValue =
         qualities && qualArray.filter((q) => userQualities.includes(q.value));
-    console.log(defaultValue);
 
     const [data, setData] = useState({
         name: name,
@@ -98,7 +99,7 @@ const EditUserPage = () => {
         validate();
     }, [data]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         const isValid = validate();
         if (!isValid) return;
@@ -107,18 +108,11 @@ const EditUserPage = () => {
             ...data,
             qualities: getAllQualities(qualities)
         };
-        console.log(newData);
-
-        try {
-            editUser(newData);
-        } catch (error) {
-            setErrors(error);
-        }
+        dispatch(editUser(newData));
     };
     return (
         <>
             {currentUser._id === userId ? (
-                user &&
                 professions &&
                 qualities && (
                     <div className="container mt-5">
